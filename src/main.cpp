@@ -12,6 +12,7 @@
 const int SCREEN_WIDTH = 1920;
 const int SCREEN_HEIGHT = 1080;
 int NUM_PARTICLES = 16384;
+glm::vec3 centerColor(0.1f, 0.0f, 0.15f);
 
 Camera camera(glm::vec3(0.0f, 60.0f, 150.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -25.0f);
 float lastX = SCREEN_WIDTH / 2.0f;
@@ -27,7 +28,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
-        if (std::string(argv[i]) == "-n") {
+        std::string arg = argv[i];
+        if (arg == "-n") {
             if (i + 1 < argc) {
                 try {
                     NUM_PARTICLES = std::stoi(argv[++i]);
@@ -40,6 +42,23 @@ int main(int argc, char* argv[]) {
                 }
             } else {
                 std::cerr << "-n option requires one argument." << std::endl;
+                return -1;
+            }
+        } else if (arg == "-c") {
+            if (i + 3 < argc) {
+                try {
+                    centerColor.r = std::stof(argv[++i]);
+                    centerColor.g = std::stof(argv[++i]);
+                    centerColor.b = std::stof(argv[++i]);
+                } catch (const std::invalid_argument& ia) {
+                    std::cerr << "Invalid number for -c argument." << std::endl;
+                    return -1;
+                } catch (const std::out_of_range& oor) {
+                    std::cerr << "Number for -c argument is out of range." << std::endl;
+                    return -1;
+                }
+            } else {
+                std::cerr << "-c option requires three float arguments (R G B)." << std::endl;
                 return -1;
             }
         }
@@ -100,7 +119,7 @@ int main(int argc, char* argv[]) {
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        graphics.render(simulation.getHostParticles(), view, projection, camera.Position);
+        graphics.render(simulation.getHostParticles(), view, projection, camera.Position, centerColor);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

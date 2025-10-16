@@ -96,7 +96,7 @@ void Graphics::init() {
     glBindVertexArray(0);
 }
 
-void Graphics::render(const std::vector<Particle>& particles, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos) {
+void Graphics::render(const std::vector<Particle>& particles, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, const glm::vec3& centerColor) {
     std::vector<glm::mat4> modelMatrices(numParticles);
     std::vector<glm::vec3> instanceColors(numParticles);
     glm::vec3 colorHot(1.0f, 0.3f, 0.1f);
@@ -135,7 +135,7 @@ void Graphics::render(const std::vector<Particle>& particles, const glm::mat4& v
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::scale(model, glm::vec3(8.0f));
     glUniformMatrix4fv(glGetUniformLocation(simpleShaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniform3f(glGetUniformLocation(simpleShaderProgram, "objectColor"), 0.1f, 0.0f, 0.15f);
+    glUniform3f(glGetUniformLocation(simpleShaderProgram, "objectColor"), centerColor.r, centerColor.g, centerColor.b);
     
     glDrawElements(GL_TRIANGLES, sphereIndexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

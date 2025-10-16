@@ -14,7 +14,7 @@ public:
     ~Graphics();
 
     void init();
-    void render(const std::vector<Particle>& particles, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos);
+    void render(const std::vector<Particle>& particles, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPos, const glm::vec3& centerColor);
 
 private:
     int screenWidth, screenHeight, numParticles;
