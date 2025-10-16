@@ -1,6 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <string>
+#include <stdexcept>
 
 #include "../include/graphics.h"
 #include "../include/simulation.h"
@@ -9,21 +11,40 @@
 // --- Global Variables & Constants ---
 const int SCREEN_WIDTH = 1920;
 const int SCREEN_HEIGHT = 1080;
-const int NUM_PARTICLES = 16384;
+int NUM_PARTICLES = 16384;
 
 Camera camera(glm::vec3(0.0f, 60.0f, 150.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -25.0f);
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+double deltaTime = 0.0;
+double lastFrame = 0.0;
 
 // --- Function Prototypes ---
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-int main() {
+int main(int argc, char* argv[]) {
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "-n") {
+            if (i + 1 < argc) {
+                try {
+                    NUM_PARTICLES = std::stoi(argv[++i]);
+                } catch (const std::invalid_argument& ia) {
+                    std::cerr << "Invalid number for -n argument." << std::endl;
+                    return -1;
+                } catch (const std::out_of_range& oor) {
+                    std::cerr << "Number for -n argument is out of range." << std::endl;
+                    return -1;
+                }
+            } else {
+                std::cerr << "-n option requires one argument." << std::endl;
+                return -1;
+            }
+        }
+    }
+
     // --- GLFW/GLEW Initialization ---
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -54,14 +75,26 @@ int main() {
     simulation.init();
 
     // --- Render Loop ---
+    double lastTime = glfwGetTime();
+    int nbFrames = 0;
+    lastFrame = lastTime;
     while (!glfwWindowShouldClose(window)) {
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        double currentTime = glfwGetTime();
+        deltaTime = currentTime - lastFrame;
+        lastFrame = currentTime;
+
+        nbFrames++;
+        if ( currentTime - lastTime >= 1.0 ){
+            char title[256];
+            sprintf(title, "CUDA N-Body Simulation - %d FPS", nbFrames);
+            glfwSetWindowTitle(window, title);
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
-        camera.ProcessKeyboard(window, deltaTime);
+        camera.ProcessKeyboard(window, (float)deltaTime);
 
         simulation.update(0.016f); // Fixed timestep
 
